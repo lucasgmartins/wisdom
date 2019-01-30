@@ -1,0 +1,29 @@
+{
+  "name": "@lucasgmartins/wisdom-server",
+  "version": "0.0.1",
+  "description": "Wisdom server for FAQ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucasgmartins/wisdom.git"
+  },
+  "keywords": [
+    "faq"
+  ],
+  "author": "Lucas Martins",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucasgmartins/wisdom/issues"
+  },
+  "homepage": "https://github.com/lucasgmartins/wisdom#readme",
+  "dependencies": {
+    "apollo-server": "^2.3.3",
+    "apollo-server-hapi": "^2.3.3",
+    "graphql": "^14.1.1",
+    "hapi": "^17.8.1",
+    "nconf": "^0.10.0"
+  }
+}
