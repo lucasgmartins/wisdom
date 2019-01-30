@@ -6,7 +6,8 @@ const schema = gql`
   type Question {
     title: String
     description: String
-    solutions: [Solution]
+    solutions: [Solution],
+    tags: [Tag]
   }
 
   type Query {
