@@ -18,7 +18,12 @@
 
     <v-content>
       <HelloWorld/>
-    </v-content>
+
+
+      <!-- <v-toolbar extended>
+
+      </v-toolbar> -->
+</v-content>
   </v-app>
 </template>
 
