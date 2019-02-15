@@ -10,7 +10,7 @@ const schema = gql`
   }
 
   extend type Mutation {
-    question(title: String!, message: String!, tags: [String], user: String): Question
+    question(title: String!, text: String!, tags: [String], user: String): Question
   }
 
   type Question {
@@ -19,7 +19,7 @@ const schema = gql`
     """
     _id: ID!
     title: String!
-    message: String!
+    text: String!
     solutions: [Solution]
     tags: [String]
     user: User!

@@ -73,11 +73,15 @@ const resolvers = {
   Query: {
     questions: async (parent, { text }) => {
 
-      const results = await client.search({
+      const search = {
         index   : 'questions',
-        type    : 'question',
-        q       : text
-      });
+        type    : 'question'
+      };
+
+      if (text)
+        Object.assign(search, {});
+
+      const results = await client.search(search);
 
       return _.map(results.hits.hits, hit => ({ _id: hit._id, ...hit._source }));
     },
@@ -103,14 +107,14 @@ const resolvers = {
     }
   },
   Mutation: {
-    question: async (parent, { title, message, user, solutions = [], tags = [] }, context, info) => {
+    question: async (parent, { title, text, user, solutions = [], tags = [] }, context, info) => {
 
       const question = await client.index({
         index : 'questions',
         type  : 'question',
         body  : {
           title,
-          message,
+          text,
           solutions,
           user,
           tags

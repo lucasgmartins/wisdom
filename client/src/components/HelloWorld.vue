@@ -26,7 +26,7 @@
         mb-5
         xs12
       >
-        <h2 v-if="questions.length" class="headline font-weight-bold mb-3">Possible questions...</h2>
+        <h2 v-if="questions && questions.length" class="headline font-weight-bold mb-3">Possible questions...</h2>
 
         <v-layout>
 
@@ -74,47 +74,28 @@
       </v-flex>
 
       <v-dialog v-model="dialog" persistent max-width="600px">
+        {{ question }}
         <v-card>
           <v-card-title>
-            <span class="headline">User Profile</span>
+            <span class="headline">Question</span>
           </v-card-title>
           <v-card-text>
             <v-container grid-list-md>
               <v-layout wrap>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field label="Legal first name*" required></v-text-field>
+                <v-flex xs12 sm12 md12>
+                  <v-text-field label="Title" v-model="question.title" required></v-text-field>
                 </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field label="Legal middle name" hint="example of helper text only on focus"></v-text-field>
+
+                <v-flex xs12 sm12 md12>
+                  <v-textarea
+                    name="input-7-1"
+                    label="Text"
+                    value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
+                    hint="Hint text"
+                    v-model="question.text"
+                  ></v-textarea>
                 </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field
-                    label="Legal last name*"
-                    hint="example of persistent helper text"
-                    persistent-hint
-                    required
-                  ></v-text-field>
-                </v-flex>
-                <v-flex xs12>
-                  <v-text-field label="Email*" required></v-text-field>
-                </v-flex>
-                <v-flex xs12>
-                  <v-text-field label="Password*" type="password" required></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6>
-                  <v-select
-                    :items="['0-17', '18-29', '30-54', '54+']"
-                    label="Age*"
-                    required
-                  ></v-select>
-                </v-flex>
-                <v-flex xs12 sm6>
-                  <v-autocomplete
-                    :items="['Skiing', 'Ice hockey', 'Soccer', 'Basketball', 'Hockey', 'Reading', 'Writing', 'Coding', 'Basejump']"
-                    label="Interests"
-                    multiple
-                  ></v-autocomplete>
-                </v-flex>
+
               </v-layout>
             </v-container>
             <small>*indicates required field</small>
@@ -122,11 +103,10 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" flat @click="dialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" flat @click="dialog = false">Save</v-btn>
+            <v-btn color="blue darken-1" flat @click="create()">Save</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-
 
       <v-card-text style="height: 100px; position: relative">
         <v-btn
@@ -136,7 +116,7 @@
           top
           right
           color="pink"
-          @click="dialog = true"
+          @click="dialog = true; question = {}"
         >
           <v-icon>add</v-icon>
         </v-btn>
@@ -156,6 +136,7 @@
         dialog    : false,
         text      : '',
         questions : [],
+        question  : {},
         selected: [2],
         items: [
           {
@@ -170,6 +151,31 @@
     methods: {
       search: function () {
         this.$apollo.queries.questions.refetch({ text : this.text });
+      },
+      create: async function () {
+
+        const mutation = {
+          mutation: gql`mutation($title: String!, $text: String!) {
+            question(title: $title, text: $text) {
+              _id
+            }
+          }
+          `,
+          variables: {
+            ...this.question
+          }
+        }
+
+        try {
+
+          await this.$apollo.mutate(mutation);
+
+          this.dialog = false;
+
+        } catch (error) {
+          console.error(error);
+        }
+
       }
     },
     apollo: {
@@ -177,10 +183,8 @@
       questions: {
         query: gql`query SearchQuestions($text: String!){
           questions(text: $text) {
-            title
-            user {
-              name
-            }
+            title,
+            text
           }
         }`,
         variables () {

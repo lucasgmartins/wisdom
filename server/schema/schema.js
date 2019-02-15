@@ -4,12 +4,10 @@
 const _                        = require('lodash');
 const { gql }                  = require('apollo-server-hapi');
 
-// const { makeExecutableSchema } = require('graphql-tools');
-
-const Question = require('./question');
-const Solution = require('./solution');
-const Tag      = require('./tag');
-const User     = require('./user');
+const Question                 = require('./question');
+const Solution                 = require('./solution');
+const Tag                      = require('./tag');
+const User                     = require('./user');
 
 const Query = gql`
   type Query {
