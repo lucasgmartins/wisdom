@@ -6,7 +6,26 @@
 
 const nconf                 = require('nconf');
 const Hapi                  = require('hapi');
-const { ApolloServer, gql } = require('apollo-server-hapi');
+const _                     = require('lodash');
+const { ApolloServer }      = require('apollo-server-hapi');
+const elasticsearch = require('elasticsearch');
+
+var client = new elasticsearch.Client({
+  host: 'localhost:9200',
+  log: 'trace'
+});
+
+client.ping({
+  // ping usually has a 3000ms timeout
+  requestTimeout: 1000
+}, function (error) {
+  if (error) {
+    console.trace('elasticsearch cluster is down!');
+  } else {
+    console.log('All is well');
+  }
+});
+
 
 // // const router      = require('hapi-router');
 // // const HapiSwagger = require('hapi-swagger');
@@ -47,44 +66,81 @@ const { ApolloServer, gql } = require('apollo-server-hapi');
 //   process.exit(1);
 // });
 
-const questions = [
-  {
-    title: 'Tradução não aparece em alguns browsers',
-    solutions: [
-      { message: 'Verificar a linguagem do browser e trocar para português', vote: 2 },
-      { message: 'Limpar cache do navegador', vote: 1 },
-    ]
-  },
-  {
-    title: 'Empresa não gera tarefas',
-    solutions: [
-      { message: 'Verificar se o cliente tem a tarefa', vote: 1 },
-      { message: 'Verificar se o cliente está ativo', vote: 1 }
-    ]
-  }
-];
-
-// const typeDefs = gql`
-//   # Comments in GraphQL are defined with the hash (#) symbol.
-
-//   # This "Book" type can be used in other type declarations.
-//   type Book {
-//     title: String
-//     author: String
-//   }
-
-//   # The "Query" type is the root of all GraphQL queries.
-//   # (A "Mutation" type will be covered later on.)
-//   type Query {
-//     books: [Book]
-//   }
-// `;
 
 let x = require('./schema/schema');
+
 const resolvers = {
   Query: {
-    questions: () => questions,
+    questions: async (parent, { text }) => {
+
+      const results = await client.search({
+        index   : 'questions',
+        type    : 'question',
+        q       : text
+      });
+
+      return _.map(results.hits.hits, hit => ({ _id: hit._id, ...hit._source }));
+    },
+    question: async (parent, { _id }, context, info) => {
+
+      const result = await client.get({ index: 'questions', type: 'question', id: _id });
+
+      return { _id: result._id, ...result._source };
+    },
+    users: async () => {
+
+      const results = await client.search({
+        index: 'users',
+        type : 'user'
+      });
+
+      return _.map(results.hits.hits, hit => ({ _id: hit._id, ...hit._source }));
+    },
+    user: async (parent, { _id }, context, info) => {
+      const result = await client.get({ index: 'users', type: 'user', id: _id });
+
+      return { _id: result._id, ...result._source };
+    }
   },
+  Mutation: {
+    question: async (parent, { title, message, user, solutions = [], tags = [] }, context, info) => {
+
+      const question = await client.index({
+        index : 'questions',
+        type  : 'question',
+        body  : {
+          title,
+          message,
+          solutions,
+          user,
+          tags
+        }
+      });
+
+      return { _id: question._id };
+    },
+    user: async (parent, { name, email }, context, info) => {
+
+      const document = await client.index({
+        index : 'users',
+        type  : 'user',
+        body  : {
+          name,
+          email
+        }
+      });
+
+      return { _id: document._id };
+    }
+  },
+  Question: {
+    user: async (parent, { name, email }, context, info) => {
+
+      const result = await client.get({ index: 'users', type: 'user', id: parent.user });
+
+      return { _id: result._id, ...result._source };
+    }
+  }
 };
 
 x.resolvers = resolvers;
@@ -106,8 +162,8 @@ async function bootstrap() {
 
 };
 
-bootstrap().catch(err => console.log(err));
-
+bootstrap()
+  .catch(err => console.log(err));
 
 module.exports = server;
 

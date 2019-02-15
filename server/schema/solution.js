@@ -4,18 +4,10 @@ const { gql } = require('apollo-server-hapi');
 
 const schema = gql`
   type Solution {
-    message: String
+    message: String!
+    vote: Int
+    created_by: User!
   }
 `;
 
 module.exports.typeDef = schema
-// export const typeDef = schema;
-
-// export const typeDef = `
-//   type Author {
-//     id: Int!
-//     firstName: String
-//     lastName: String
-//     books: [Book]
-//   }
-// `;

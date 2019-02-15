@@ -4,7 +4,7 @@ const { gql } = require('apollo-server-hapi');
 
 const schema = gql`
   type Tag {
-    name: String
+    title: String
   }
 `;
 

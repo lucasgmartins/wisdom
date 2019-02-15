@@ -3,16 +3,28 @@
 const { gql } = require('apollo-server-hapi');
 
 const schema = gql`
-  type Question {
-    title: String
-    description: String
-    solutions: [Solution],
-    tags: [Tag]
+
+  extend type Query {
+    questions(text: String): [Question]
+    question(id: String!): Question!
   }
 
-  type Query {
-    questions: [Question]
+  extend type Mutation {
+    question(title: String!, message: String!, tags: [String], user: String): Question
   }
+
+  type Question {
+    """
+      title of question
+    """
+    _id: ID!
+    title: String!
+    message: String!
+    solutions: [Solution]
+    tags: [String]
+    user: User!
+  }
+
 `;
 
 module.exports.typeDef = schema;
